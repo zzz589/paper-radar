@@ -1,0 +1,41 @@
+name: Weekly Paper Scanner
+
+on:
+  schedule:
+    # 设定：每周一早上 8:00 (UTC时间0:00) 运行
+    - cron: '0 0 * * 1'
+  # 允许你手动点击按钮触发（方便测试）
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write  # 需要权限来创建 Issue
+
+jobs:
+  paper-radar:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Analysis Script
+        env:
+          # ---在这里修改你的关键词---
+          KEYWORDS: "Large Language Models, Chain of Thought"
+        run: python main.py
+
+      - name: Create GitHub Issue
+        uses: peter-evans/create-issue-from-file@v4
+        with:
+          title: "📑 每周论文推荐: ${{ env.KEYWORDS }}"
+          content-filepath: ./report.md
+          labels: "weekly-reading, automated"
